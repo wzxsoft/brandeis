@@ -48,14 +48,6 @@ public class OldMap {
 	public static void main(String[] args) throws IOException
 	{
 		
-		File f= new File("/home/hadoop04/hadoop/main_output.txt");
-		if(!f.exists())
-			f.createNewFile();
-		FileOutputStream fos = new FileOutputStream(f, true);
-		PrintWriter pw = new PrintWriter(fos);
-		pw.println(" MAINNN");
-		pw.close();
-		fos.close();
 		//Get Job Configuration and Set job name
 		JobConf wikiJob = new JobConf(OldMap.class);
 		wikiJob.setJobName("wikiJobs");
@@ -83,12 +75,9 @@ public class OldMap {
 	//Mapper Class
 	private static class WikiPediaMapper extends MapReduceBase implements Mapper<LongWritable, WikipediaPage, Text, Text>
 	{
-		private static final Text articleName = new Text();
-	    private static final Text articleContent=new Text();
 	    private Text word = new Text();
 	    private Text detail=new Text();
 	    private String d="";
-	    private String delimiter=" ,.:;/()\"[]?!#$%^&*@<>{}~|`'=\\t{2,}\\s{2,}";
 		@Override
 		public void map(LongWritable key, WikipediaPage w, OutputCollector<Text, Text> output, Reporter reporter) throws IOException
 		{
@@ -124,7 +113,6 @@ public class OldMap {
 			}
 			else
 				counter.findCounter(PageTypes.OTHER).increment(1); //Then the other counter is increased
-			reporter.setStatus("Mapping key: "+key);
 		}
 		
 		
@@ -150,11 +138,6 @@ public class OldMap {
 			String outputValues = ""; //The output String
 			int sum=0;
 			Hashtable<String, ArrayList<String>> DocPositions=new Hashtable<String,ArrayList<String>>();
-			File f= new File("/home/hadoop04/hadoop/reducer_output_tmp.txt");
-			if(!f.exists())
-				f.createNewFile();
-			FileOutputStream fos = new FileOutputStream(f, true);
-			PrintWriter pw = new PrintWriter(fos);
 			while(values.hasNext())
 			{
 				String detail=values.next().toString();
@@ -170,10 +153,6 @@ public class OldMap {
 					DocPositions.put(Docid, newPositions);
 				}
 				//outputValues += "("+values.next().toString()+") "; //Just connect the String
-				pw.println(" VALUE: "+detail);
-				System.out.println("testtttt   VALUE: "+detail);
-				Log log=LogFactory.getLog(WikiPediaReducer.class);
-				log.info(" VALUE: "+detail);
 			}
 
 			Enumeration<String> allkeys=DocPositions.keys();
@@ -191,17 +170,9 @@ public class OldMap {
 					sum++;
 				}
 				outputValues+="("+docid+", "+p+") ";			
-				pw.println("WORD: "+ docid);
-				System.out.println("testtttt   WORD: "+docid);
-				Log log=LogFactory.getLog(WikiPediaReducer.class);
-				log.info("WORD: "+ docid);
 
-			}
-			outputValues=sum+outputValues;		
-			pw.println("REDUCE KEY: "+ key);
+			}	
 			if(sum<=200000) output.collect(key, this.textWrapper(outputValues));
-			pw.close();
-			fos.close();
 		}
 		
 		private Text textWrapper(String s)
